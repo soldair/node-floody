@@ -59,4 +59,7 @@ flood.on
     - end
       - flood has been stopped
 
+## woo hoo!
+
+let me know if you have issues or comments. i hope its useful.
 
