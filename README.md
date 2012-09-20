@@ -1,7 +1,7 @@
 [![Build Status](https://secure.travis-ci.org/soldair/node-floody.png)](http://travis-ci.org/soldair/node-floody)
 
 # floody
-combines floods of small stream writes while not delaying or buffering writes when not flooded. buffers only up to configured ammount and only keeps buffer around for at most configured interval.
+combines floods of small stream writes while not delaying or buffering writes when not flooded. buffers only up to configured amount and only keeps buffer around for at most configured interval.
 
 ## example
 
