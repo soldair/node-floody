@@ -63,7 +63,21 @@ module.exports = function(stream,options){
     var bl = bufLen;
     this.stats.writes++;
 
-    this.stream.write(Buffer.concat(buf),function(){
+
+    if(Buffer.concat) buf = Buffer.concat(buf);
+    else {// 0.6 has no concat
+      var combinedBuf = new Buffer(bl);
+      var added = 0;
+      buf.forEach(function(b){
+        if(!(b instanceof Buffer)) b = new Buffer(b);
+        combinedBuf.copy(b,0,added);
+        added += b.length;
+      });
+    }
+
+    
+
+    this.stream.write(buf,function(){
       em.emit('write',resData,bl);
       em.stats.bytes += bufLen;
     });
