@@ -65,17 +65,7 @@ module.exports = function(stream,options){
 
 
     if(Buffer.concat) buf = Buffer.concat(buf);
-    else {// 0.6 has no concat
-      var combinedBuf = new Buffer(bl);
-      var added = 0;
-      buf.forEach(function(b){
-        if(!(b instanceof Buffer)) b = new Buffer(b);
-        combinedBuf.copy(b,0,added);
-        added += b.length;
-      });
-    }
-
-    
+    else buf = em._concat(buf);
 
     this.stream.write(buf,function(){
       em.emit('write',resData,bl);
@@ -95,6 +85,23 @@ module.exports = function(stream,options){
   em._polling = setInterval(function(){
     if(em.shouldWrite()) em._write();
   },interval);
+
+  // 0.6 doesnt have Buffer.concat
+  em._concat = function(buffers){
+      var len = 0;
+      buffers.forEach(function(b,k){
+        if(!(b instanceof Buffer)) b = new Buffer(''+b);
+        len += b.length;
+        buffers[k] = b;
+      });
+      combinedBuf = new Buffer(len);
+      var added = 0;
+      buffers.forEach(function(b){
+        b.copy(combinedBuf,added);
+        added += b.length;
+      }); 
+      return combinedBuf;
+  };
 
   return em;
 };
