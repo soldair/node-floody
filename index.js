@@ -55,7 +55,7 @@ module.exports = function(options){
 
     var now = Date.now();
     if(now-em.lastFlush >= interval) return true;
-    if(bufLen > maxBufferLen && maxBufferLen > -1) return true;
+    if(bufLen > maxBufferLen) return true;
 
     // is the next write probably going to happen within the interval?
     if(writes && writes.length) {
