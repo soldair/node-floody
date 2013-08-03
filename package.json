@@ -1,10 +1,10 @@
 {
   "name": "floody",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "combines floods of small stream writes while not delaying or buffering writes when not flooded. buffers only up to configure ammount and only keeps buffer around for at most configured interval.",
   "main": "index.js",
-  "devDependencies":{
-    "tap":"*"
+  "devDependencies": {
+    "tap": "*"
   },
   "directories": {
     "test": "test"
@@ -25,5 +25,8 @@
     "socket"
   ],
   "author": "Ryan Day",
-  "license": "BSD"
+  "license": "BSD",
+  "dependencies": {
+    "through": "~2.3.4"
+  }
 }

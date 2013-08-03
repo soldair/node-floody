@@ -1,46 +1,61 @@
-var EventEmitter = require('events').EventEmitter;
 
-module.exports = function(stream,options){
-  var em = new EventEmitter()
+var through = require('through');
+
+module.exports = function(options){
+  options = options||{};
+
+  var em
   , writes = []
   , buf = []
   , bufLen = 0
   , lastWrite = 0
+  , interval = options.interval||100
+  , maxBufferLen = options.maxBufferLen||10240
+  , windowSize = options.windowSize||50
   ;
-  options = options||{};
 
-  var interval = options.interval||100;
-  var maxBufferLen = options.maxBufferLen||10240;
+  // so for floody to be helpful in some contexts i need the meta data associated with every write
+  // instead of providing a fs style write callback interface when floody writes
+  var write = function(data,meta){
 
-  em.lastFlush = Date.now();
-  em.stream = stream;
-  em.data = [];
-  em.stats = {bytes:0,requestedWrites:0,writes:0};
-  em.write = function(value,data){
-    this.stats.requestedWrites++;
+    em.stats.requestedWrites++;
     // just got a write save the time between last write and this.
     var now = Date.now();
     writes.push(now); 
 
     // write events are emitted with an array of data from all of the writes combined into one.
-    em.data.push(data);
+    if(meta) em.data.push(meta);
 
-    if(writes.length > 50) writes.shift();
+    if(writes.length > windowSize) writes.shift();
 
-    value = value instanceof Buffer ? value : new Buffer(value);
-    bufLen += value.length;
+    data = data instanceof Buffer ? data : new Buffer(data);
+    bufLen += data.length;
 
-    buf.push(value);
+    buf.push(data);
 
-    if(this.shouldWrite()) this._write();
+    if(em.shouldWrite()) em._write();
+
   };
+
+  em = through(function(){},function(){
+    clearInterval(this._polling);
+  });
+
+  em.write = function(data,meta){
+    write(data,meta)
+    return !this.paused;
+  } 
+
+  em.lastFlush = Date.now();
+  em.data = [];
+  em.stats = {bytes:0,requestedWrites:0,writes:0};
 
   em.shouldWrite = function(){ 
     if(!bufLen) return false;
 
     var now = Date.now();
     if(now-em.lastFlush >= interval) return true;
-    if(bufLen > maxBufferLen) return true;
+    if(bufLen > maxBufferLen && maxBufferLen > -1) return true;
 
     // is the next write probably going to happen within the interval?
     if(writes && writes.length) {
@@ -57,29 +72,20 @@ module.exports = function(stream,options){
     }
   };
 
-  em._write = function(){
-    var resData = this.data;
+  em._write = function() {
+    var metaData = this.data;
     this.data = [];
-    var bl = bufLen;
     this.stats.writes++;
 
+    buf = em._concat(buf);
 
-    if(Buffer.concat) buf = Buffer.concat(buf);
-    else buf = em._concat(buf);
-
-    this.stream.write(buf,function(){
-      em.emit('write',resData,bl);
-      em.stats.bytes += bufLen;
-    });
+    this.emit('data',buf);
+    if(metaData.length) em.emit('write',metaData,bufLen);
+    em.stats.bytes += bufLen; 
 
     buf = [];
     bufLen = 0;
     this.lastFlush = Date.now();
-  };
-
-  em.end = em.stop = function(){
-    clearInterval(this._polling);
-    this.emit('end');
   };
 
   em._polling = setInterval(function(){
@@ -87,7 +93,7 @@ module.exports = function(stream,options){
   },interval);
 
   // 0.6 doesnt have Buffer.concat
-  em._concat = function(buffers){
+  em._concat = Buffer.concat||function(buffers){
       var len = 0;
       buffers.forEach(function(b,k){
         if(!(b instanceof Buffer)) b = new Buffer(''+b);
