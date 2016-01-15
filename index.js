@@ -28,7 +28,7 @@ module.exports = function(options){
 
     if(writes.length > windowSize) writes.shift();
 
-    data = data instanceof Buffer ? data : new Buffer(data);
+    data = data instanceof Buffer ? data : new Buffer(data+'');
     bufLen += data.length;
 
     buf.push(data);
