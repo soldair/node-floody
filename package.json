@@ -4,13 +4,13 @@
   "description": "combines floods of small stream writes while not delaying or buffering writes when not flooded. buffers only up to configure ammount and only keeps buffer around for at most configured interval.",
   "main": "index.js",
   "devDependencies": {
-    "tap": "*"
+    "tape": "^4.4.0"
   },
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "tap test/*.js"
+    "test": "tape test/*.js"
   },
   "repository": {
     "type": "git",

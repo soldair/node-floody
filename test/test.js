@@ -1,5 +1,7 @@
-var test = require('tap').test;
+var test = require('tape')
 var floody = require(__dirname+'/../index.js');
+
+var through = require('through')
 
 
 test('can use floody',function(t){
@@ -48,3 +50,37 @@ test('0.6 concat shim doesnt mess up data',function(t){
   flood.end();
   t.end();
 });
+
+
+test('can pipe?',function(t){
+  var th = through()
+
+  var s = floody({interval:10,unref:true})
+
+  var c = 0
+
+  var events = []
+
+  s.on('data',function(data){
+
+    events.push(data)
+
+    c++
+    if(c === 2) {
+
+      t.equals(events[0]+'','10','should have stringified number instead of exposing uninitalized memory')
+      t.equals(events[1]+'','1010','should have combined last 2 writes')
+
+      t.end()
+      s.end()
+    }
+  })
+
+
+  th.pipe(s)
+
+  th.write(10)
+  th.write(10)
+  th.write(10)
+
+})

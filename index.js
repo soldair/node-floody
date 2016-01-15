@@ -92,6 +92,10 @@ module.exports = function(options){
     if(em.shouldWrite()) em._write();
   },interval);
 
+  //if(options.unref) {
+  //  if(em._polling.unref) em._polling.unref()
+  //}
+
   // 0.6 doesnt have Buffer.concat
   em._concat = Buffer.concat||function(buffers){
       var len = 0;
