@@ -1,6 +1,6 @@
 {
   "name": "floody",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "combines floods of small stream writes while not delaying or buffering writes when not flooded. buffers only up to configure ammount and only keeps buffer around for at most configured interval.",
   "main": "index.js",
   "devDependencies": {
